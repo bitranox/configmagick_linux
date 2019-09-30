@@ -16,7 +16,7 @@ required = ['fire',
             'psutil',
             ]                                                                                                   # type: List
 required_for_tests = list()                                                                                     # type: List
-entry_points = {'configmagick_linux': ['configmagick_linux = configmagick_linux.configmagick_linux:main']}      # type: Dict
+entry_points = {'console_scripts': ['configmagick_linux = configmagick_linux.configmagick_linux:main']}      # type: Dict
 
 
 def get_version(dist_directory: str) -> str:
