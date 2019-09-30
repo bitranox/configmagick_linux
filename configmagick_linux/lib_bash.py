@@ -4,6 +4,7 @@ import logging
 import os
 import pathlib
 import sys
+from typing import List
 
 # OWN
 import lib_log_utils
@@ -13,6 +14,15 @@ import lib_shell
 import psutil       # type: ignore
 
 logger = logging.getLogger()
+
+
+class ConfBash(object):
+    def __init__(self) -> None:
+        self.sudo_command = 'sudo'                                  # type: str
+        self.number_of_retries = 3                                  # type: int
+
+
+conf_bash = ConfBash()
 
 
 class BashCommand(object):
@@ -115,3 +125,57 @@ def get_path_home_dir_user(username: str) -> pathlib.Path:
 def get_current_username() -> str:
     username = getpass.getuser()
     return username
+
+
+def run_shell_command(command: str, quiet: bool = False, use_sudo: bool = True, except_on_fail: bool = True,
+                      retries: int = conf_bash.number_of_retries, sudo_command: str = conf_bash.sudo_command) -> int:
+    """
+    returns 0 if ok, otherwise returncode. prepends "sudo_command" if required
+
+    """
+
+    l_command = lib_shell.shlex_split_multi_platform(command)
+    return run_shell_l_command(l_command=l_command, quiet=quiet, use_sudo=use_sudo,
+                               except_on_fail=except_on_fail, retries=retries, sudo_command=sudo_command)
+
+
+def run_shell_l_command(l_command: List[str], quiet: bool = False, use_sudo: bool = True, except_on_fail: bool = True,
+                        retries: int = conf_bash.number_of_retries, sudo_command: str = conf_bash.sudo_command) -> int:
+    """
+    returns 0 if ok, otherwise returncode. prepends "sudo_command" if required
+
+    """
+
+    response = lib_shell.ShellCommandResponse()
+    if quiet:
+        log_settings = lib_shell.set_log_settings_to_level(logging.NOTSET)
+    else:
+        log_settings = lib_shell.RunShellCommandLogSettings()
+
+    if use_sudo:
+        l_command = prepend_sudo_command(l_command=l_command, sudo_command=sudo_command)
+
+    for n in range(retries):
+        response = lib_shell.run_shell_ls_command(ls_command=l_command,
+                                                  raise_on_returncode_not_zero=False,
+                                                  pass_stdout_stderr_to_sys=not quiet,
+                                                  log_settings=log_settings)
+        if response.returncode == 0:
+            break
+    if response.returncode != 0 and except_on_fail:
+        raise RuntimeError('command "{command}" failed'.format(command=' '.join(l_command)))
+    return int(response.returncode)
+
+
+def prepend_sudo_command(l_command: List[str], sudo_command: str = 'sudo') -> List[str]:
+    if sudo_command_exist(sudo_command=sudo_command):
+        l_command = [sudo_command] + l_command
+    return l_command
+
+
+def sudo_command_exist(sudo_command: str = 'sudo') -> bool:
+    try:
+        get_bash_command(sudo_command)
+        return True
+    except SyntaxError:
+        return False

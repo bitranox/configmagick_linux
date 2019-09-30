@@ -2,8 +2,6 @@
 import logging
 from typing import List
 
-# ##### EXT
-
 # ##### OWN
 import lib_regexp
 import lib_shell
@@ -17,17 +15,9 @@ except ImportError:
 
 class ConfInstall(object):
     def __init__(self) -> None:
-        self.apt_command = 'apt-get'                             # type: str
-        self.sudo_command = 'sudo'                               # type: str
-        self.number_of_retries = 3                               # type: int
-        self.sudo_command_exist = self.is_sudo_command_exist()   # type: bool
-
-    def is_sudo_command_exist(self) -> bool:
-        try:
-            lib_bash.get_bash_command(self.sudo_command)
-            return True
-        except SyntaxError:
-            return False
+        self.apt_command = 'apt-get'                                # type: str
+        self.sudo_command = 'sudo'                                  # type: str
+        self.number_of_retries = 3                                  # type: int
 
 
 conf_install = ConfInstall()
@@ -36,14 +26,13 @@ conf_install = ConfInstall()
 logger = logging.getLogger()
 
 
-def install_linux_packages(packages: List[str], quiet: bool = False, reinstall: bool = False,
-                           use_sudo: bool = True, except_on_fail: bool = True) -> int:
-    exit_code = 0
+def install_linux_packages(packages: List[str], quiet: bool = False, reinstall: bool = False, use_sudo: bool = True, except_on_fail: bool = True) -> int:
+    return_code = 0
     for package in packages:
-        exit_code_single = install_linux_package(package=package, quiet=quiet, reinstall=reinstall, except_on_fail=except_on_fail, use_sudo=use_sudo)
-        if exit_code_single:
-            exit_code = exit_code_single
-    return exit_code
+        return_code_single = install_linux_package(package=package, quiet=quiet, reinstall=reinstall, except_on_fail=except_on_fail, use_sudo=use_sudo)
+        if return_code_single:
+            return_code = return_code_single
+    return return_code
 
 
 def install_linux_package(package: str, quiet: bool = False, reinstall: bool = False, use_sudo: bool = True, except_on_fail: bool = True) -> int:
@@ -58,7 +47,8 @@ def install_linux_package(package: str, quiet: bool = False, reinstall: bool = F
     >>> install_linux_package('unknown', quiet=True, except_on_fail = True)     # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     Traceback (most recent call last):
         ...
-    RuntimeError: Install Package "unknown" failed
+    RuntimeError: command "sudo apt-get install unknown -y" failed
+
     >>> assert uninstall_linux_package('dialog', quiet=True) == 0
     >>> if is_dialog_installed:
     ...     result = install_linux_package('dialog', quiet=True)
@@ -67,12 +57,7 @@ def install_linux_package(package: str, quiet: bool = False, reinstall: bool = F
 
     """
 
-    response = lib_shell.ShellCommandResponse()
-    if quiet:
-        log_settings = lib_shell.set_log_settings_to_level(logging.NOTSET)
-    else:
-        log_settings = lib_shell.RunShellCommandLogSettings()
-
+    return_code = 0
     if not is_package_installed(package) or reinstall:
 
         if reinstall:
@@ -80,29 +65,24 @@ def install_linux_package(package: str, quiet: bool = False, reinstall: bool = F
         else:
             l_command = [conf_install.apt_command, 'install', package, '-y']
 
-        if use_sudo:
-            l_command = prepend_sudo_command(l_command)
+        return_code = lib_bash.run_shell_l_command(l_command=l_command,
+                                                   quiet=quiet,
+                                                   use_sudo=use_sudo,
+                                                   except_on_fail=except_on_fail,
+                                                   retries=conf_install.number_of_retries,
+                                                   sudo_command=conf_install.sudo_command
+                                                   )
 
-        for n in range(conf_install.number_of_retries):
-            response = lib_shell.run_shell_ls_command(ls_command=l_command,
-                                                      raise_on_returncode_not_zero=False,
-                                                      pass_stdout_stderr_to_sys=not quiet,
-                                                      log_settings=log_settings)
-            if response.returncode == 0:
-                break
-        if response.returncode != 0 and except_on_fail:
-            raise RuntimeError('Install Package "{package}" failed'.format(package=package))
-
-    return int(response.returncode)
+    return return_code
 
 
 def uninstall_linux_packages(packages: List[str], quiet: bool = False, use_sudo: bool = True, except_on_fail: bool = True) -> int:
-    exit_code = 0
+    return_code = 0
     for package in packages:
-        exit_code_single = uninstall_linux_package(package=package, quiet=quiet, except_on_fail=except_on_fail, use_sudo=use_sudo)
-        if exit_code_single:
-            exit_code = exit_code_single
-    return exit_code
+        return_code_single = uninstall_linux_package(package=package, quiet=quiet, except_on_fail=except_on_fail, use_sudo=use_sudo)
+        if return_code_single:
+            return_code = return_code_single
+    return return_code
 
 
 def uninstall_linux_package(package: str, quiet: bool = False, use_sudo: bool = True, except_on_fail: bool = True) -> int:
@@ -110,36 +90,19 @@ def uninstall_linux_package(package: str, quiet: bool = False, use_sudo: bool = 
     returns 0 if ok, otherwise returncode
 
     """
-
-    response = lib_shell.ShellCommandResponse()
-    if quiet:
-        log_settings = lib_shell.set_log_settings_to_level(logging.NOTSET)
-    else:
-        log_settings = lib_shell.RunShellCommandLogSettings()
+    return_code = 0
 
     if is_package_installed(package):
         l_command = [conf_install.apt_command, 'purge', package, '-y']
 
-        if use_sudo:
-            l_command = prepend_sudo_command(l_command)
-
-        for n in range(conf_install.number_of_retries):
-            response = lib_shell.run_shell_ls_command(ls_command=l_command,
-                                                      raise_on_returncode_not_zero=False,
-                                                      pass_stdout_stderr_to_sys=not quiet,
-                                                      log_settings=log_settings)
-            if response.returncode == 0:
-                break
-        if response.returncode != 0 and except_on_fail:
-            raise RuntimeError('Uninstall Package "{package}" failed'.format(package=package))
-
-    return int(response.returncode)
-
-
-def prepend_sudo_command(l_command: List[str]) -> List[str]:
-    if conf_install.sudo_command_exist:
-        l_command = [conf_install.sudo_command] + l_command
-    return l_command
+        return_code = lib_bash.run_shell_l_command(l_command=l_command,
+                                                   quiet=quiet,
+                                                   use_sudo=use_sudo,
+                                                   except_on_fail=except_on_fail,
+                                                   retries=conf_install.number_of_retries,
+                                                   sudo_command=conf_install.sudo_command
+                                                   )
+    return return_code
 
 
 def is_package_installed(package: str) -> bool:
