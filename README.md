@@ -1,2 +1,0 @@
-# configmagick_linux
-configmagick_linux
