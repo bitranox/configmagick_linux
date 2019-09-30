@@ -144,6 +144,8 @@ def prepend_sudo_command(l_command: List[str]) -> List[str]:
 
 def is_package_installed(package: str) -> bool:
     """
+    returns True if installed, otherwise False
+
     >>> assert is_package_installed('apt') == True
     >>> assert is_package_installed('unknown') == False
 
