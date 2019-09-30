@@ -13,6 +13,7 @@ package_name = 'configmagick_linux'                                             
 required = ['fire',
             'lib_log_utils @ git+https://github.com/bitranox/lib_log_utils.git',
             'lib_shell @ git+https://github.com/bitranox/lib_shell.git',
+            'psutil',
             ]                                                                                                   # type: List
 required_for_tests = list()                                                                                     # type: List
 entry_points = {'configmagick_linux': ['configmagick_linux = configmagick_linux.configmagick_linux:main']}      # type: Dict
