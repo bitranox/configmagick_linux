@@ -133,7 +133,7 @@ def get_linux_release_name() -> str:
 
     """
     linux_release_name = run_shell_command('lsb_release -c -s', quiet=True).stdout
-    return linux_release_name
+    return str(linux_release_name)
 
 
 def get_linux_release_number() -> str:
@@ -143,7 +143,7 @@ def get_linux_release_number() -> str:
 
     """
     release = run_shell_command('lsb_release -r -s', quiet=True).stdout
-    return release
+    return str(release)
 
 
 def get_linux_release_number_major() -> str:
@@ -157,8 +157,9 @@ def get_linux_release_number_major() -> str:
     return release_major
 
 
-def update(quiet: bool = False):
-    run_shell_command('apt-get update', quiet=quiet)
+def update(quiet: bool = False) -> lib_shell.ShellCommandResponse:
+    result = run_shell_command('apt-get update', quiet=quiet)
+    return result
 
 
 def run_shell_command(command: str, quiet: bool = False, use_sudo: bool = True,
