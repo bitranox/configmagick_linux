@@ -117,11 +117,11 @@ def is_package_installed(package: str) -> bool:
     response = lib_shell.run_shell_ls_command(['dpkg', '--list', package],
                                               raise_on_returncode_not_zero=False,
                                               log_settings=log_settings)
-    result = lib_regexp.reg_grep(package, response.stdout)
+    result = lib_regexp.reg_grep(package + ' ', response.stdout)
     if not result:
         return False
     if len(result) != 1:
-        raise RuntimeError('can not determine')
+        raise RuntimeError('can not determine if package "{package}" is installed'.format(package=package))
     if result[0].startswith('ii'):
         return True
     else:
