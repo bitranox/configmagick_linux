@@ -130,10 +130,35 @@ def get_current_username() -> str:
 def get_linux_release_name() -> str:
     """
     >>> assert get_linux_release_name() is not None
- 
+
     """
-    linux_release_name = run_shell_command('lsb_release -c -s', quiet=True).stdout.strip()
+    linux_release_name = run_shell_command('lsb_release -c -s', quiet=True).stdout
     return linux_release_name
+
+
+def get_linux_release_number() -> str:
+    """
+    returns for instance '18.04'
+    >>> assert '.' in get_linux_release_number()
+
+    """
+    release = run_shell_command('lsb_release -r -s', quiet=True).stdout
+    return release
+
+
+def get_linux_release_number_major() -> str:
+    """
+    returns for instance '18'
+    >>> assert int(get_linux_release_number_major()) > 11
+
+    """
+    release = get_linux_release_number()
+    release_major = release.split('.')[0]
+    return release_major
+
+
+def update(quiet: bool = False):
+    run_shell_command('apt-get update', quiet=quiet)
 
 
 def run_shell_command(command: str, quiet: bool = False, use_sudo: bool = True,
