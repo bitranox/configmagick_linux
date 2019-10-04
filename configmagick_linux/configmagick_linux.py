@@ -43,9 +43,10 @@ def main() -> None:
         is_called_via_pytest = [(sys_arg != '') for sys_arg in sys.argv if 'pytest' in sys_arg]
         if not is_called_via_pytest:
             fire.Fire({
+                'get_linux_release_name': get_linux_release_name,
                 'install_linux_package': install_linux_package,
+                'is_package_installed': is_package_installed,
                 'uninstall_linux_package': uninstall_linux_package,
-                'is_package_installed': is_package_installed
             })
 
     except FileNotFoundError:

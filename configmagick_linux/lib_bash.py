@@ -127,20 +127,35 @@ def get_current_username() -> str:
     return username
 
 
-def run_shell_command(command: str, quiet: bool = False, use_sudo: bool = True, except_on_fail: bool = True,
-                      retries: int = conf_bash.number_of_retries, sudo_command: str = conf_bash.sudo_command) -> int:
+def get_linux_release_name() -> str:
+    """
+    >>> assert get_linux_release_name() is not None
+ 
+    """
+    linux_release_name = run_shell_command('lsb_release -c -s', quiet=True).stdout.strip()
+    return linux_release_name
+
+
+def run_shell_command(command: str, quiet: bool = False, use_sudo: bool = True,
+                      except_on_fail: bool = True, retries: int = conf_bash.number_of_retries,
+                      sudo_command: str = conf_bash.sudo_command, shell: bool = False) -> lib_shell.ShellCommandResponse:
     """
     returns 0 if ok, otherwise returncode. prepends "sudo_command" if required
 
     """
+    if not shell:
+        l_command = lib_shell.shlex_split_multi_platform(command)
+    else:
+        l_command = [command]
 
-    l_command = lib_shell.shlex_split_multi_platform(command)
     return run_shell_l_command(l_command=l_command, quiet=quiet, use_sudo=use_sudo,
-                               except_on_fail=except_on_fail, retries=retries, sudo_command=sudo_command)
+                               except_on_fail=except_on_fail, retries=retries,
+                               sudo_command=sudo_command, shell=shell)
 
 
-def run_shell_l_command(l_command: List[str], quiet: bool = False, use_sudo: bool = True, except_on_fail: bool = True,
-                        retries: int = conf_bash.number_of_retries, sudo_command: str = conf_bash.sudo_command) -> int:
+def run_shell_l_command(l_command: List[str], quiet: bool = False, use_sudo: bool = True,
+                        except_on_fail: bool = True, retries: int = conf_bash.number_of_retries,
+                        sudo_command: str = conf_bash.sudo_command, shell: bool = False) -> lib_shell.ShellCommandResponse:
     """
     returns 0 if ok, otherwise returncode. prepends "sudo_command" if required
 
@@ -159,12 +174,14 @@ def run_shell_l_command(l_command: List[str], quiet: bool = False, use_sudo: boo
         response = lib_shell.run_shell_ls_command(ls_command=l_command,
                                                   raise_on_returncode_not_zero=False,
                                                   pass_stdout_stderr_to_sys=not quiet,
-                                                  log_settings=log_settings)
+                                                  log_settings=log_settings,
+                                                  shell=shell)
         if response.returncode == 0:
             break
     if response.returncode != 0 and except_on_fail:
         raise RuntimeError('command "{command}" failed'.format(command=' '.join(l_command)))
-    return int(response.returncode)
+    response.stdout = response.stdout.strip()
+    return response
 
 
 def prepend_sudo_command(l_command: List[str], sudo_command: str = 'sudo') -> List[str]:
