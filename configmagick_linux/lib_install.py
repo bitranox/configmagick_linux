@@ -36,7 +36,7 @@ def install_linux_packages(packages: List[str], quiet: bool = False, reinstall: 
     return l_results
 
 
-def install_linux_package(package: str, quiet: bool = False, reinstall: bool = False,
+def install_linux_package(package: str, parameters: List[str] = [], quiet: bool = False, reinstall: bool = False,
                           use_sudo: bool = True, except_on_fail: bool = True) -> lib_shell.ShellCommandResponse:
     """
     returns 0 if ok, otherwise returncode
@@ -66,6 +66,8 @@ def install_linux_package(package: str, quiet: bool = False, reinstall: bool = F
             l_command = [conf_install.apt_command, 'install', '--reinstall', package, '-y']
         else:
             l_command = [conf_install.apt_command, 'install', package, '-y']
+
+        l_command = l_command + parameters
 
         result = lib_bash.run_shell_l_command(l_command=l_command,
                                               quiet=quiet,
