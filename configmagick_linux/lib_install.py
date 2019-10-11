@@ -1,6 +1,8 @@
 # ##### STDLIB
 import logging
-from typing import List
+import pathlib
+import time
+from typing import List, Union
 
 # ##### OWN
 import lib_regexp
@@ -126,3 +128,25 @@ def is_package_installed(package: str) -> bool:
         return True
     else:
         return False
+
+
+def wait_for_file_to_be_created(filename: pathlib.Path, max_wait: Union[int, float] = 60, check_interval: Union[int, float] = 1) -> None:
+    start_time = time.time()
+    while not filename.exists():
+        time.sleep(check_interval)
+        if time.time() - start_time > max_wait:
+            raise TimeoutError('"{filename}" was not created within {max_wait} seconds'
+                               .format(filename=filename, max_wait=max_wait))
+
+
+def wait_for_file_to_be_unchanged(filename: pathlib.Path, max_wait: Union[int, float] = 60, check_interval: Union[int, float] = 1) -> None:
+    start_time = time.time()
+    old_mtime = filename.stat().st_mtime
+    current_mtime = old_mtime + 1
+    while old_mtime != current_mtime:
+        old_mtime = filename.stat().st_mtime
+        time.sleep(check_interval)
+        current_mtime = filename.stat().st_mtime
+        if time.time() - start_time > max_wait:
+            raise TimeoutError('"{filename}" did not remain unchanged within {max_wait} seconds'
+                               .format(filename=filename, max_wait=max_wait))
