@@ -150,3 +150,7 @@ def wait_for_file_to_be_unchanged(filename: pathlib.Path, max_wait: Union[int, f
         if time.time() - start_time > max_wait:
             raise TimeoutError('"{filename}" did not remain unchanged within {max_wait} seconds'
                                .format(filename=filename, max_wait=max_wait))
+
+
+def download_file(download_link: str, filename: pathlib.Path) -> None:
+    lib_bash.run_shell_command('wget -nv -c -O "{filename}" "{download_link}"'.format(filename=filename, download_link=download_link))
