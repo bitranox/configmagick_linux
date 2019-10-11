@@ -212,7 +212,7 @@ def run_shell_l_command(l_command: List[str], quiet: bool = False, use_sudo: boo
 
 def prepend_sudo_command(l_command: List[str], sudo_command: str = 'sudo') -> List[str]:
     if sudo_command_exist(sudo_command=sudo_command):
-        l_command = [sudo_command] + l_command
+        l_command = [sudo_command] + ['--preserve-env'] + l_command
     return l_command
 
 
