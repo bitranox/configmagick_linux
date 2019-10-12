@@ -1,5 +1,6 @@
 # ##### STDLIB
 import logging
+import os
 import pathlib
 import time
 from typing import List, Union
@@ -154,3 +155,14 @@ def wait_for_file_to_be_unchanged(filename: pathlib.Path, max_wait: Union[int, f
 
 def download_file(download_link: str, filename: pathlib.Path) -> None:
     lib_bash.run_shell_command('wget -nv -c -O "{filename}" "{download_link}"'.format(filename=filename, download_link=download_link))
+
+
+def is_on_travis() -> bool:
+    """
+    >>> assert is_on_travis() is not None
+    """
+    is_travis = False
+    if 'TRAVIS' in os.environ:                                  # pragma: no cover
+        if str(os.environ['TRAVIS']).lower() == 'true':
+            is_travis = True
+    return is_travis
