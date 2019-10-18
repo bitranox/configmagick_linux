@@ -189,7 +189,7 @@ def run_shell_l_command(l_command: List[str], quiet: bool = False, use_sudo: boo
 
     response = lib_shell.ShellCommandResponse()
     if quiet:
-        log_settings = lib_shell.set_log_settings_to_level(logging.ERROR)
+        log_settings = lib_shell.set_log_settings_to_level(logging.NOTSET)
     else:
         log_settings = lib_shell.RunShellCommandLogSettings()
 
