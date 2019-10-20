@@ -222,3 +222,15 @@ def sudo_command_exist(sudo_command: str = 'sudo') -> bool:
         return True
     except SyntaxError:
         return False
+
+
+def get_env_display() -> str:
+    """ Returns the Display Variable, or raises if not there
+
+    >>> assert get_env_display() is not None
+    """
+    if 'DISPLAY' in os.environ:
+        display = str(os.environ['DISPLAY'])
+    else:
+        raise RuntimeError('can not get environment DISPLAY variable')
+    return display
