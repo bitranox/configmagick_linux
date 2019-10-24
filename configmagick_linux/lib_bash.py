@@ -163,8 +163,8 @@ def update(quiet: bool = False) -> lib_shell.ShellCommandResponse:
 
 
 def run_shell_command(command: str, quiet: bool = False, use_sudo: bool = True,
-                      except_on_fail: bool = True, retries: int = conf_bash.number_of_retries,
-                      sudo_command: str = conf_bash.sudo_command, shell: bool = False) -> lib_shell.ShellCommandResponse:
+                      raise_on_returncode_not_zero: bool = True, retries: int = conf_bash.number_of_retries,
+                      shell: bool = False) -> lib_shell.ShellCommandResponse:
     """
     returns 0 if ok, otherwise returncode. prepends "sudo_command" if required
 
@@ -174,54 +174,35 @@ def run_shell_command(command: str, quiet: bool = False, use_sudo: bool = True,
     else:
         l_command = [command]
 
-    return run_shell_l_command(l_command=l_command, quiet=quiet, use_sudo=use_sudo,
-                               except_on_fail=except_on_fail, retries=retries,
-                               sudo_command=sudo_command, shell=shell)
+    return run_shell_l_command(l_command=l_command,
+                               quiet=quiet,
+                               use_sudo=use_sudo,
+                               raise_on_returncode_not_zero=raise_on_returncode_not_zero,
+                               retries=retries,
+                               shell=shell)
 
 
 def run_shell_l_command(l_command: List[str], quiet: bool = False, use_sudo: bool = True,
-                        except_on_fail: bool = True, retries: int = conf_bash.number_of_retries,
-                        sudo_command: str = conf_bash.sudo_command, shell: bool = False) -> lib_shell.ShellCommandResponse:
+                        raise_on_returncode_not_zero: bool = True, retries: int = conf_bash.number_of_retries,
+                        shell: bool = False) -> lib_shell.ShellCommandResponse:
     """
     returns 0 if ok, otherwise returncode. prepends "sudo_command" if required
 
     """
 
-    response = lib_shell.ShellCommandResponse()
     if quiet:
         log_settings = lib_shell.set_log_settings_to_level(logging.NOTSET)
     else:
         log_settings = lib_shell.RunShellCommandLogSettings()
 
-    if use_sudo:
-        l_command = prepend_sudo_command(l_command=l_command, sudo_command=sudo_command)
-
-    for n in range(retries):
-        response = lib_shell.run_shell_ls_command(ls_command=l_command,
-                                                  raise_on_returncode_not_zero=False,
-                                                  pass_stdout_stderr_to_sys=not quiet,
-                                                  log_settings=log_settings,
-                                                  shell=shell)
-        if response.returncode == 0:
-            break
-    if response.returncode != 0 and except_on_fail:
-        raise RuntimeError('command "{command}" failed'.format(command=' '.join(l_command)))
-    response.stdout = response.stdout.strip()
+    response = lib_shell.run_shell_ls_command(ls_command=l_command,
+                                              raise_on_returncode_not_zero=raise_on_returncode_not_zero,
+                                              pass_stdout_stderr_to_sys=not quiet,
+                                              log_settings=log_settings,
+                                              shell=shell,
+                                              retries=retries,
+                                              use_sudo=use_sudo)
     return response
-
-
-def prepend_sudo_command(l_command: List[str], sudo_command: str = 'sudo') -> List[str]:
-    if sudo_command_exist(sudo_command=sudo_command):
-        l_command = [sudo_command] + l_command
-    return l_command
-
-
-def sudo_command_exist(sudo_command: str = 'sudo') -> bool:
-    try:
-        get_bash_command(sudo_command)
-        return True
-    except SyntaxError:
-        return False
 
 
 def get_env_display() -> str:

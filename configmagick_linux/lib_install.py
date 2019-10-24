@@ -29,18 +29,21 @@ conf_install = ConfInstall()
 logger = logging.getLogger()
 
 
-def install_linux_packages(packages: List[str], quiet: bool = False, reinstall: bool = False,
-                           use_sudo: bool = True, except_on_fail: bool = True) -> List[lib_shell.ShellCommandResponse]:
+def install_linux_packages(packages: List[str],
+                           quiet: bool = False,
+                           reinstall: bool = False,
+                           use_sudo: bool = True,
+                           raise_on_returncode_not_zero: bool = True) -> List[lib_shell.ShellCommandResponse]:
     l_results = []
     for package in packages:
-        result = install_linux_package(package=package, quiet=quiet, reinstall=reinstall, except_on_fail=except_on_fail, use_sudo=use_sudo)
+        result = install_linux_package(package=package, quiet=quiet, reinstall=reinstall, raise_on_returncode_not_zero=raise_on_returncode_not_zero, use_sudo=use_sudo)
         l_results.append(result)
 
     return l_results
 
 
 def install_linux_package(package: str, parameters: List[str] = [], quiet: bool = False, reinstall: bool = False,
-                          use_sudo: bool = True, except_on_fail: bool = True) -> lib_shell.ShellCommandResponse:
+                          use_sudo: bool = True, raise_on_returncode_not_zero: bool = True) -> lib_shell.ShellCommandResponse:
     """
     returns 0 if ok, otherwise returncode
 
@@ -48,8 +51,8 @@ def install_linux_package(package: str, parameters: List[str] = [], quiet: bool 
     >>> result = uninstall_linux_package('dialog', quiet=True)
     >>> result1 = install_linux_package('dialog', quiet=True)
     >>> result2 = install_linux_package('dialog', quiet=True, reinstall=True)
-    >>> result3 = install_linux_package('unknown', quiet=True, except_on_fail = False)
-    >>> install_linux_package('unknown', quiet=True, except_on_fail = True)     # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    >>> result3 = install_linux_package('unknown', quiet=True, raise_on_returncode_not_zero = False)
+    >>> install_linux_package('unknown', quiet=True, raise_on_returncode_not_zero = True)     # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     Traceback (most recent call last):
         ...
     RuntimeError: command "sudo apt-get install unknown -y" failed
@@ -75,23 +78,28 @@ def install_linux_package(package: str, parameters: List[str] = [], quiet: bool 
         result = lib_bash.run_shell_l_command(l_command=l_command,
                                               quiet=quiet,
                                               use_sudo=use_sudo,
-                                              except_on_fail=except_on_fail,
+                                              raise_on_returncode_not_zero=raise_on_returncode_not_zero,
                                               retries=conf_install.number_of_retries,
                                               sudo_command=conf_install.sudo_command
                                               )
     return result
 
 
-def uninstall_linux_packages(packages: List[str], quiet: bool = False,
-                             use_sudo: bool = True, except_on_fail: bool = True) -> List[lib_shell.ShellCommandResponse]:
+def uninstall_linux_packages(packages: List[str],
+                             quiet: bool = False,
+                             use_sudo: bool = True,
+                             raise_on_returncode_not_zero: bool = True) -> List[lib_shell.ShellCommandResponse]:
     l_result = []
     for package in packages:
-        result = uninstall_linux_package(package=package, quiet=quiet, except_on_fail=except_on_fail, use_sudo=use_sudo)
+        result = uninstall_linux_package(package=package, quiet=quiet, raise_on_returncode_not_zero=raise_on_returncode_not_zero, use_sudo=use_sudo)
         l_result.append(result)
     return l_result
 
 
-def uninstall_linux_package(package: str, quiet: bool = False, use_sudo: bool = True, except_on_fail: bool = True) -> lib_shell.ShellCommandResponse:
+def uninstall_linux_package(package: str,
+                            quiet: bool = False,
+                            use_sudo: bool = True,
+                            raise_on_returncode_not_zero: bool = True) -> lib_shell.ShellCommandResponse:
 
     result = lib_shell.ShellCommandResponse()
 
@@ -101,7 +109,7 @@ def uninstall_linux_package(package: str, quiet: bool = False, use_sudo: bool = 
         result = lib_bash.run_shell_l_command(l_command=l_command,
                                               quiet=quiet,
                                               use_sudo=use_sudo,
-                                              except_on_fail=except_on_fail,
+                                              raise_on_returncode_not_zero=raise_on_returncode_not_zero,
                                               retries=conf_install.number_of_retries,
                                               sudo_command=conf_install.sudo_command
                                               )
