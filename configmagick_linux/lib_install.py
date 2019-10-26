@@ -77,7 +77,8 @@ def install_linux_package(package: str, parameters: List[str] = [], quiet: bool 
         result = lib_shell.run_shell_ls_command(ls_command=l_command,
                                                 quiet=quiet,
                                                 use_sudo=use_sudo,
-                                                raise_on_returncode_not_zero=raise_on_returncode_not_zero)
+                                                raise_on_returncode_not_zero=raise_on_returncode_not_zero,
+                                                pass_stdout_stderr_to_sys=True)
     return result
 
 

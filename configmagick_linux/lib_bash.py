@@ -96,7 +96,7 @@ def get_linux_release_number_major() -> str:
 
 
 def update(quiet: bool = False) -> lib_shell.ShellCommandResponse:
-    result = lib_shell.run_shell_command('apt-get update', quiet=quiet, use_sudo=True)
+    result = lib_shell.run_shell_command('apt-get update', use_sudo=True, pass_stdout_stderr_to_sys=True)
     return result
 
 
