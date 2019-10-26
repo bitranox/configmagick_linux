@@ -19,6 +19,11 @@ install_or_update_lib_bash
 
 source /usr/local/lib_bash/lib_helpers.sh
 
+function clean_caches {
+    clr_green "clean caches"
+    "$(command -v sudo 2>/dev/null)" rm -Rf ./.mypy_cache
+    "$(command -v sudo 2>/dev/null)" rm -Rf ./.pytest_cache
+}
 
 function upgrade_pytest {
     clr_green "updating pytest"
@@ -49,7 +54,7 @@ function pytest_loop {
         fi
 
         clr_green "*** MYPY Module strict **************************************************************************"
-        python3 -m mypy "${my_dir}" --strict --no-warn-unused-ignores --follow-imports=skip --no-implicit-reexport
+        python3 -m mypy "${my_dir}" --strict --no-warn-unused-ignores --follow-imports=skip
             # shellcheck disable=SC2181  # Check Exit Code directly
             if [[ "${?}" -gt 0 ]]; then
                 clr_red "MYPY Error in Module"
@@ -75,4 +80,5 @@ function pytest_loop {
 
 # upgrade_pytest
 # upgrade_mypy
+clean_caches
 pytest_loop

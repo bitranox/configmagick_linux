@@ -19,8 +19,6 @@ except ImportError:
 class ConfInstall(object):
     def __init__(self) -> None:
         self.apt_command = 'apt-get'                                # type: str
-        self.sudo_command = 'sudo'                                  # type: str
-        self.number_of_retries = 3                                  # type: int
 
 
 conf_install = ConfInstall()
@@ -36,7 +34,8 @@ def install_linux_packages(packages: List[str],
                            raise_on_returncode_not_zero: bool = True) -> List[lib_shell.ShellCommandResponse]:
     l_results = []
     for package in packages:
-        result = install_linux_package(package=package, quiet=quiet, reinstall=reinstall, raise_on_returncode_not_zero=raise_on_returncode_not_zero, use_sudo=use_sudo)
+        result = install_linux_package(package=package, reinstall=reinstall, raise_on_returncode_not_zero=raise_on_returncode_not_zero,
+                                       use_sudo=use_sudo, quiet=quiet)
         l_results.append(result)
 
     return l_results
@@ -55,7 +54,7 @@ def install_linux_package(package: str, parameters: List[str] = [], quiet: bool 
     >>> install_linux_package('unknown', quiet=True, raise_on_returncode_not_zero = True)     # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     Traceback (most recent call last):
         ...
-    RuntimeError: command "sudo apt-get install unknown -y" failed
+    subprocess.CalledProcessError: Command 'sudo apt-get install unknown -y' returned non-zero exit status ...
 
     >>> result = uninstall_linux_package('dialog', quiet=True)
     >>> if is_dialog_installed:
@@ -75,13 +74,10 @@ def install_linux_package(package: str, parameters: List[str] = [], quiet: bool 
 
         l_command = l_command + parameters
 
-        result = lib_bash.run_shell_l_command(l_command=l_command,
-                                              quiet=quiet,
-                                              use_sudo=use_sudo,
-                                              raise_on_returncode_not_zero=raise_on_returncode_not_zero,
-                                              retries=conf_install.number_of_retries,
-                                              sudo_command=conf_install.sudo_command
-                                              )
+        result = lib_shell.run_shell_ls_command(ls_command=l_command,
+                                                quiet=quiet,
+                                                use_sudo=use_sudo,
+                                                raise_on_returncode_not_zero=raise_on_returncode_not_zero)
     return result
 
 
@@ -106,13 +102,10 @@ def uninstall_linux_package(package: str,
     if is_package_installed(package):
         l_command = [conf_install.apt_command, 'purge', package, '-y']
 
-        result = lib_bash.run_shell_l_command(l_command=l_command,
-                                              quiet=quiet,
-                                              use_sudo=use_sudo,
-                                              raise_on_returncode_not_zero=raise_on_returncode_not_zero,
-                                              retries=conf_install.number_of_retries,
-                                              sudo_command=conf_install.sudo_command
-                                              )
+        result = lib_shell.run_shell_ls_command(ls_command=l_command,
+                                                quiet=quiet,
+                                                use_sudo=use_sudo,
+                                                raise_on_returncode_not_zero=raise_on_returncode_not_zero)
     return result
 
 
@@ -161,8 +154,10 @@ def wait_for_file_to_be_unchanged(filename: pathlib.Path, max_wait: Union[int, f
                                .format(filename=filename, max_wait=max_wait))
 
 
-def download_file(download_link: str, filename: pathlib.Path, quiet: bool = True) -> None:
-    lib_bash.run_shell_command('wget -nv -c -O "{filename}" "{download_link}"'.format(filename=filename, download_link=download_link), quiet=quiet)
+def download_file(download_link: str, filename: pathlib.Path, quiet: bool = True, use_sudo: bool = False) -> None:
+    lib_shell.run_shell_command('wget -nv -c -O "{filename}" "{download_link}"'.format(filename=filename, download_link=download_link),
+                                quiet=quiet,
+                                use_sudo=use_sudo)
 
 
 def is_on_travis() -> bool:
