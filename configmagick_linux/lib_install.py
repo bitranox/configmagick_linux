@@ -48,8 +48,11 @@ def install_linux_package(package: str, parameters: List[str] = [], quiet: bool 
 
     >>> is_dialog_installed = is_package_installed('dialog')
     >>> result = uninstall_linux_package('dialog', quiet=True)
+    >>> assert is_package_installed('dialog') == False
     >>> result1 = install_linux_package('dialog', quiet=True)
+    >>> assert is_package_installed('dialog') == True
     >>> result2 = install_linux_package('dialog', quiet=True, reinstall=True)
+    >>> assert is_package_installed('dialog') == True
     >>> result3 = install_linux_package('unknown', quiet=True, raise_on_returncode_not_zero = False)
     >>> install_linux_package('unknown', quiet=True, raise_on_returncode_not_zero = True)     # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     Traceback (most recent call last):
@@ -75,6 +78,7 @@ def install_linux_package(package: str, parameters: List[str] = [], quiet: bool 
         l_command = l_command + parameters
 
         result = lib_shell.run_shell_ls_command(ls_command=l_command,
+                                                shell=True,
                                                 quiet=quiet,
                                                 use_sudo=use_sudo,
                                                 raise_on_returncode_not_zero=raise_on_returncode_not_zero,
@@ -100,14 +104,23 @@ def uninstall_linux_package(package: str,
 
     result = lib_shell.ShellCommandResponse()
 
-    if is_package_installed(package):
+    if is_package_installed(package) or is_wildcard_in_package_name(package):
         l_command = [conf_install.apt_command, 'purge', package, '-y']
 
         result = lib_shell.run_shell_ls_command(ls_command=l_command,
+                                                shell=True,
                                                 quiet=quiet,
                                                 use_sudo=use_sudo,
-                                                raise_on_returncode_not_zero=raise_on_returncode_not_zero)
+                                                raise_on_returncode_not_zero=raise_on_returncode_not_zero,
+                                                pass_stdout_stderr_to_sys=True)
     return result
+
+
+def is_wildcard_in_package_name(package: str) -> bool:
+    if '*' in package or '?' in package:
+        return True
+    else:
+        return False
 
 
 def is_package_installed(package: str) -> bool:
