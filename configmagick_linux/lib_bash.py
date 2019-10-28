@@ -4,6 +4,7 @@ import logging
 import os
 import pathlib
 import sys
+from typing import Union
 
 # OWN
 import lib_log_utils
@@ -110,3 +111,10 @@ def get_env_display() -> str:
     else:
         raise RuntimeError('can not get environment DISPLAY variable')
     return display
+
+
+def force_remove_directory_recursive(path_to_remove: Union[pathlib.Path, str]) -> None:
+    path_to_remove = pathlib.Path(path_to_remove)
+    lib_shell.run_shell_command('rm -Rf "{path_to_remove}"'.format(path_to_remove=path_to_remove), quiet=True, use_sudo=True, shell=True)
+    if path_to_remove.exists():
+        raise RuntimeError('path "{path_to_remove}" can not be removed'.format(path_to_remove=path_to_remove))
