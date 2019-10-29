@@ -116,6 +116,14 @@ def uninstall_linux_package(package: str,
     return result
 
 
+def full_update_and_upgrade(quiet: bool = False) -> None:
+    lib_shell.run_shell_command('{apt_command} update'.format(apt_command=conf_install.apt_command), use_sudo=True, shell=True, quiet=quiet)
+    lib_shell.run_shell_command('{apt_command} upgrade -y'.format(apt_command=conf_install.apt_command), use_sudo=True, shell=True, quiet=quiet)
+    lib_shell.run_shell_command('{apt_command} dist-upgrade -y'.format(apt_command=conf_install.apt_command), use_sudo=True, shell=True, quiet=quiet)
+    lib_shell.run_shell_command('{apt_command} autoclean -y'.format(apt_command=conf_install.apt_command), use_sudo=True, shell=True, quiet=quiet)
+    lib_shell.run_shell_command('{apt_command} autoremove -y'.format(apt_command=conf_install.apt_command), use_sudo=True, shell=True, quiet=quiet)
+
+
 def is_wildcard_in_package_name(package: str) -> bool:
     if '*' in package or '?' in package:
         return True
