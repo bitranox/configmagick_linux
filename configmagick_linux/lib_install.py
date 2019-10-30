@@ -195,3 +195,36 @@ def is_on_travis() -> bool:
         if str(os.environ['TRAVIS']).lower() == 'true':
             is_travis = True
     return is_travis
+
+
+def is_service_installed(service: str) -> bool:
+    """
+    >>> assert not is_service_installed('unknown')
+    """
+
+    response = lib_shell.run_shell_command(command='systemctl list-units --full -all | fgrep "{service}.service"'.format(service=service),
+                                           shell=True, raise_on_returncode_not_zero=False, log_settings=lib_shell.conf_lib_shell.log_settings_qquiet)
+    return bool(response.stdout)
+
+
+def is_service_active(service: str) -> bool:
+    """
+    >>> assert not is_service_active('unknown')
+    """
+    response = lib_shell.run_shell_command(command='systemctl is-active {service}'.format(service=service),
+                                           shell=True, log_settings=lib_shell.conf_lib_shell.log_settings_qquiet)
+    if response.stdout.startswith('active'):
+        return True
+    else:
+        return False
+
+
+def start_service(service: str, quiet: bool = False) -> None:
+    """
+    >>> start_service('ssh')
+
+    """
+    if not is_service_active(service=service):
+        lib_shell.run_shell_command(command='service {service} start'.format(service=service), shell=True, use_sudo=True, quiet=quiet)
+        if not is_service_active(service=service):
+            raise RuntimeError('can not start service "{service}"'.format(service=service))
