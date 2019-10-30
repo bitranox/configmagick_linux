@@ -200,6 +200,7 @@ def is_on_travis() -> bool:
 def is_service_installed(service: str) -> bool:
     """
     >>> assert not is_service_installed('unknown')
+    >>> assert is_service_installed('ssh') is not None
     """
 
     response = lib_shell.run_shell_command(command='systemctl list-units --full -all | fgrep "{service}.service"'.format(service=service),
@@ -210,9 +211,19 @@ def is_service_installed(service: str) -> bool:
 def is_service_active(service: str) -> bool:
     """
     >>> assert not is_service_active('unknown')
+    >>> if is_service_installed('ssh'):
+    ...     is_ssh_active = is_service_active('ssh')
+    ...     stop_service('ssh')
+    ...     assert not is_service_active('ssh')
+    ...     start_service('ssh')
+    ...     assert is_service_active('ssh')
+    ...     if not is_ssh_active:
+    ...         stop_service('ssh')
+
     """
     response = lib_shell.run_shell_command(command='systemctl is-active {service}'.format(service=service),
-                                           shell=True, log_settings=lib_shell.conf_lib_shell.log_settings_qquiet)
+                                           shell=True, log_settings=lib_shell.conf_lib_shell.log_settings_qquiet,
+                                           raise_on_returncode_not_zero=False)
     if response.stdout.startswith('active'):
         return True
     else:
@@ -221,10 +232,25 @@ def is_service_active(service: str) -> bool:
 
 def start_service(service: str, quiet: bool = False) -> None:
     """
-    >>> start_service('ssh')
-
+    >>> import unittest
+    >>> unittest.TestCase().assertRaises(RuntimeError, start_service, service='unknown')
     """
+    if not is_service_installed(service=service):
+        raise RuntimeError('can not start service "{service}", because it is not installed'.format(service=service))
     if not is_service_active(service=service):
         lib_shell.run_shell_command(command='service {service} start'.format(service=service), shell=True, use_sudo=True, quiet=quiet)
         if not is_service_active(service=service):
             raise RuntimeError('can not start service "{service}"'.format(service=service))
+
+
+def stop_service(service: str, quiet: bool = False) -> None:
+    """
+    >>> import unittest
+    >>> unittest.TestCase().assertRaises(RuntimeError, stop_service, service='unknown')
+    """
+    if not is_service_installed(service=service):
+        raise RuntimeError('can not stop service "{service}", because it is not installed'.format(service=service))
+    if is_service_active(service=service):
+        lib_shell.run_shell_command(command='service {service} stop'.format(service=service), shell=True, use_sudo=True, quiet=quiet)
+        if is_service_active(service=service):
+            raise RuntimeError('can not stop service "{service}"'.format(service=service))
