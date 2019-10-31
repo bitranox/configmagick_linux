@@ -259,3 +259,18 @@ def stop_service(service: str, quiet: bool = False) -> None:
         lib_shell.run_shell_command(command='service {service} stop'.format(service=service), shell=True, use_sudo=True, quiet=quiet)
         if is_service_active(service=service):
             raise RuntimeError('can not stop service "{service}"'.format(service=service))
+
+
+def set_inotify_watches(max_user_watches: int = 512*1024):
+    """ set inotify watches for pycharm and other applications
+        512K is appropriate for most applications
+    """
+    # TODO
+    # add line to /etc/sysctl.conf
+    # on Debian systems (like Ubuntu) one should not modify /etc/sysctl.conf, but create a new file in /etc/sysctl.d/.
+    # This will keep your system package upgradable.
+    # After version 207 SYSTEMD no longer reads from "/etc/sysctl.conf".  It reads from "etc/systctl.d/##-sysctl.conf"  Where ## means any number 01-99.
+    # fs.inotify.max_user_watches = 524288 # max_user_watches
+    # apply the change:
+    # sudo sysctl -p --system
+    pass
