@@ -261,7 +261,7 @@ def stop_service(service: str, quiet: bool = False) -> None:
             raise RuntimeError('can not stop service "{service}"'.format(service=service))
 
 
-def set_inotify_watches(max_user_watches: int = 512 * 1024):
+def set_inotify_watches(max_user_watches: int = 512 * 1024) -> None:
     """ set inotify watches for pycharm and other applications
         512K is appropriate for most applications
     """
