@@ -21,7 +21,7 @@ addons:
     apt:
         packages:
             - xvfb      # install xvfb virtual framebuffer - this we need for WINE
-            - winbind   # needed for WINE
+            # - winbind   # needed for WINE - installed with configmagick_wine
 
 services:   # start services
   - xvfb    # is needed for WINE on headless installation
