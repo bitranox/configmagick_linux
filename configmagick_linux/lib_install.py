@@ -274,3 +274,13 @@ def set_inotify_watches(max_user_watches: int = 512 * 1024) -> None:
     # apply the change:
     # sudo sysctl -p --system
     pass
+
+
+def config_updatedb(l_prune_directories: List[Union[str, pathlib.Path]]):
+    """ add Prune Directories (that should not be indexed) to updatedb.conf
+    """
+    # TODO
+    # add list to /etc/updatedb.conf
+    # original (eoan) : PRUNEPATHS="/tmp /var/spool /media /var/lib/os-prober /var/lib/ceph /home/.ecryptfs /var/lib/schroot"
+    # add directory  /var/snap/lxd/common/lxd/containers
+    pass
