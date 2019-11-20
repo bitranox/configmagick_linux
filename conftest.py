@@ -5,7 +5,6 @@ collect_ignore = ['build_docs.py', '__main__.py']
 
 
 def pytest_cmdline_preparse(args):
-
     """
     # run tests on multiple processes if pytest-xdist plugin is available
     # unfortunately it does not work with codecov, and does not collect any tests
