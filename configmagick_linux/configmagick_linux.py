@@ -38,7 +38,7 @@ except ImportError:                 # type: ignore # pragma: no cover
 
 def main() -> None:
     try:
-        lib_log_utils.BannerSettings.called_via_commandline = True
+        lib_log_utils.LogSettings.add_streamhandler_color = True
         # we must not call fire if the program is called via pytest
         is_called_via_pytest = [(sys_arg != '') for sys_arg in sys.argv if 'pytest' in sys_arg]
         if not is_called_via_pytest:

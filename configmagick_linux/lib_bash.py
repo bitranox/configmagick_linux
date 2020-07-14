@@ -27,7 +27,7 @@ def restart_myself(as_root: bool = False) -> None:
         for handler in p.open_files() + p.connections():
             os.close(handler.fd)
     except Exception:
-        lib_log_utils.log_exception_traceback('error on restart myself')
+        lib_log_utils.log_traceback.log_exception_traceback('error on restart myself')
     if as_root:
         os.execl(lib_shell.conf_lib_shell.sudo_command, sys.executable, *sys.argv)
     else:
